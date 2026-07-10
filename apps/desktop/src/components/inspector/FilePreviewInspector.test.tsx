@@ -1,25 +1,34 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { FilePreviewInspector as FilePreviewInspectorT } from "@ai4s/shared";
 import { FilePreviewInspector, PreviewError } from "./FilePreviewInspector";
 
 // The markdown tests below carry inline `content`, so they never hit
 // readArtifact — this mock only feeds the binary-file test.
-const probeLargeFile = vi.fn();
+const artifactFileMock = vi.hoisted(() => ({
+  readArtifact: vi.fn(async () => ({
+    path: "data/blob.bin",
+    mime: "application/octet-stream",
+    encoding: "base64" as const,
+    data: "AAEC",
+    size: 3,
+  })),
+  probeLargeFile: vi.fn(),
+}));
+
 vi.mock("@/lib/artifactFile", async (importOriginal) => {
   const mod = await importOriginal<typeof import("@/lib/artifactFile")>();
   return {
     ...mod,
-    readArtifact: vi.fn(async () => ({
-      path: "data/blob.bin",
-      mime: "application/octet-stream",
-      encoding: "base64",
-      data: "AAEC",
-      size: 3,
-    })),
-    probeLargeFile: (...args: unknown[]) => probeLargeFile(...args),
+    readArtifact: artifactFileMock.readArtifact,
+    probeLargeFile: (...args: unknown[]) => artifactFileMock.probeLargeFile(...args),
   };
+});
+
+beforeEach(() => {
+  artifactFileMock.readArtifact.mockClear();
+  artifactFileMock.probeLargeFile.mockReset();
 });
 
 const md: FilePreviewInspectorT = {
@@ -75,6 +84,33 @@ describe("FilePreviewInspector — binary file behind a text preview", () => {
   });
 });
 
+describe("FilePreviewInspector — restricted files", () => {
+  it("does not read POTCAR and does not offer a Code tab", async () => {
+    const potcar: FilePreviewInspectorT = {
+      variant: "file",
+      path: "calc/POTCAR",
+      filename: "POTCAR",
+      artifact: "data",
+    };
+    render(<FilePreviewInspector data={potcar} onClose={() => {}} />);
+    expect(await screen.findByText(/POTCAR is restricted/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Code/ })).not.toBeInTheDocument();
+    expect(artifactFileMock.readArtifact).not.toHaveBeenCalled();
+  });
+
+  it("uses the full path to restrict credential-like files", async () => {
+    const secret: FilePreviewInspectorT = {
+      variant: "file",
+      path: "secrets/data.txt",
+      filename: "data.txt",
+      artifact: "data",
+    };
+    render(<FilePreviewInspector data={secret} onClose={() => {}} />);
+    expect(await screen.findByText(/data\.txt is restricted/)).toBeInTheDocument();
+    expect(artifactFileMock.readArtifact).not.toHaveBeenCalled();
+  });
+});
+
 describe("PreviewError", () => {
   it("shows a helpful card with Open-externally for a too-large file", async () => {
     const onOpen = vi.fn();
@@ -92,7 +128,7 @@ describe("PreviewError", () => {
   });
 
   it("inspects a too-large file without loading it and renders the pointer", async () => {
-    probeLargeFile.mockResolvedValueOnce({
+    artifactFileMock.probeLargeFile.mockResolvedValueOnce({
       format: "fastq",
       size: "90.0 GB",
       approx_reads: 450_000_000,
@@ -114,11 +150,11 @@ describe("PreviewError", () => {
     expect(await screen.findByText("fastq")).toBeInTheDocument(); // the Format cell, exact
     expect(screen.getByText(/450,000,000/)).toBeInTheDocument();
     expect(screen.getByText(/not loaded/i)).toBeInTheDocument();
-    expect(probeLargeFile).toHaveBeenCalledWith("data/reads.fastq.gz", undefined);
+    expect(artifactFileMock.probeLargeFile).toHaveBeenCalledWith("data/reads.fastq.gz", undefined);
   });
 
   it("shows the probe's error if introspection fails", async () => {
-    probeLargeFile.mockRejectedValueOnce(new Error("no Python found"));
+    artifactFileMock.probeLargeFile.mockRejectedValueOnce(new Error("no Python found"));
     render(
       <PreviewError error="file too large to preview" filename="x.bam" path="x.bam" onOpenExternally={() => {}} />,
     );

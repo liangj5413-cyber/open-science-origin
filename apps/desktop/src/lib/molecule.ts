@@ -1,20 +1,32 @@
 // Chemical-structure helpers (P1-3). Pure and WebGL-free so they unit-test in
 // jsdom; the interactive 3D depiction happens in MoleculeView via 3Dmol.js.
 
+import { isVaspStructureFile } from "./vaspStructure";
+
 /** 3Dmol.js render styles the viewer exposes. */
-export type MoleculeStyleMode = "stick" | "sphere" | "cartoon";
+export type MoleculeStyleMode = "stick" | "sphere" | "cartoon" | "line" | "cross";
 
 /** File extension → the format string 3Dmol.js expects in `addModel`. */
 const MOLECULE_FORMATS: Record<string, string> = {
+  bcif: "bcif",
+  cdjson: "cdjson",
   cif: "cif",
+  contcar: "vasp",
   cube: "cube",
+  gro: "gro",
+  lammpstrj: "lammpstrj",
   mcif: "cif",
   mmcif: "cif",
   mol: "sdf",
   mol2: "mol2",
+  mmtf: "mmtf",
   pdb: "pdb",
+  pdbqt: "pdbqt",
+  poscar: "vasp",
   pqr: "pqr",
+  prmtop: "prmtop",
   sdf: "sdf",
+  vasp: "vasp",
   xyz: "xyz",
   // SMILES has no coordinates; it is converted to a molblock first (see
   // smilesToMolblock) and then handed to 3Dmol as an "sdf" model.
@@ -32,6 +44,7 @@ function extOf(filename: string): string {
 
 /** The 3Dmol format for a file, or null when it is not a molecule file. */
 export function moleculeFormatFor(filename: string): string | null {
+  if (isVaspStructureFile(filename)) return "vasp";
   return MOLECULE_FORMATS[extOf(filename)] ?? null;
 }
 
@@ -53,7 +66,7 @@ export function looksLikeMacromolecule(content: string): boolean {
 
 /** The style to open a file with: cartoon for macromolecules, else sticks. */
 export function defaultStyleMode(filename: string, content: string): MoleculeStyleMode {
-  const macromoleculeExt = ["cif", "mcif", "mmcif", "pdb", "pqr"].includes(extOf(filename));
+  const macromoleculeExt = ["bcif", "cif", "mcif", "mmcif", "mmtf", "pdb", "pdbqt", "pqr"].includes(extOf(filename));
   return macromoleculeExt && looksLikeMacromolecule(content) ? "cartoon" : "stick";
 }
 

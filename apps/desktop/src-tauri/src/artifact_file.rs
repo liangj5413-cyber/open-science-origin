@@ -50,10 +50,18 @@ pub fn mime_for(ext: &str) -> (&'static str, bool) {
         "mol2" => ("chemical/x-mol2", true),
         "smi" | "smiles" => ("chemical/x-daylight-smiles", true),
         "cif" | "mcif" | "mmcif" => ("chemical/x-cif", true),
+        "bcif" => ("chemical/x-bcif", false),
+        "mmtf" => ("chemical/x-mmtf", false),
         "pdb" => ("chemical/x-pdb", true),
+        "pdbqt" => ("chemical/x-pdbqt", true),
         "pqr" => ("chemical/x-pqr", true),
         "xyz" => ("chemical/x-xyz", true),
         "cube" => ("chemical/x-cube", true),
+        "gro" => ("chemical/x-gromacs-gro", true),
+        "prmtop" => ("chemical/x-amber-prmtop", true),
+        "lammpstrj" => ("chemical/x-lammps-trajectory", true),
+        "cdjson" => ("chemical/x-cdjson", true),
+        "vasp" | "poscar" | "contcar" => ("chemical/x-vasp-poscar", true),
         // Genome annotation tracks — plain text, rendered by the native track viewer.
         "bed" | "bedgraph" | "bdg" | "gff" | "gff3" | "gtf" | "vcf" => ("text/plain", true),
         // 3D mesh / CAD — read as bytes (base64) so the three.js loaders get an
@@ -84,6 +92,29 @@ pub fn mime_for(ext: &str) -> (&'static str, bool) {
         "ogv" => ("video/ogg", false),
         _ => ("application/octet-stream", false),
     }
+}
+
+pub fn mime_for_path(path: &Path) -> (&'static str, bool) {
+    if is_vasp_structure_name(path) {
+        return ("chemical/x-vasp-poscar", true);
+    }
+    let ext = path.extension().and_then(|s| s.to_str()).unwrap_or("");
+    mime_for(ext)
+}
+
+fn is_vasp_structure_name(path: &Path) -> bool {
+    let Some(name) = path.file_name().and_then(|s| s.to_str()) else {
+        return false;
+    };
+    let name = name.to_ascii_lowercase();
+    name == "poscar"
+        || name == "contcar"
+        || name.starts_with("poscar_")
+        || name.starts_with("poscar-")
+        || name.starts_with("poscar.")
+        || name.starts_with("contcar_")
+        || name.starts_with("contcar-")
+        || name.starts_with("contcar.")
 }
 
 /// Resolve `rel` under `root`, rejecting any path that escapes it.
@@ -193,12 +224,7 @@ pub fn resolve_artifact(app: AppHandle, path: String) -> Result<Option<String>, 
 #[tauri::command(async)]
 pub fn read_artifact(app: AppHandle, path: String, root: Option<String>) -> Result<ArtifactFile, String> {
     let full = resolve_under(&scope_root(&app, root.as_deref())?, &path)?;
-    let ext = full
-        .extension()
-        .and_then(|s| s.to_str())
-        .unwrap_or("")
-        .to_string();
-    let (mime, is_text) = mime_for(&ext);
+    let (mime, is_text) = mime_for_path(&full);
     // Check the size from metadata BEFORE reading the bytes — otherwise a
     // multi-GB file is fully loaded into memory (and can OOM the app) before the
     // cap is ever consulted. Stat first, reject early, then read.
@@ -576,9 +602,11 @@ fn base64_encode(input: &[u8]) -> String {
 
 #[cfg(test)]
 mod tests {
+    use std::path::Path;
+
     use super::{
         base64_encode, dir_entries, encode_for_preview, exceeds_preview_cap, locate_under,
-        mime_for, open_url, unique_name,
+        mime_for, mime_for_path, open_url, unique_name,
     };
 
     #[test]
@@ -620,6 +648,15 @@ mod tests {
     }
 
     #[test]
+    fn extensionless_vasp_structure_names_are_text() {
+        for name in ["POSCAR", "CONTCAR", "run/POSCAR_Si", "CONTCAR.relaxed", "cell.vasp"] {
+            let (mime, is_text) = mime_for_path(Path::new(name));
+            assert_eq!(mime, "chemical/x-vasp-poscar", "{name}");
+            assert!(is_text, "{name} must be previewed as utf8");
+        }
+    }
+
+    #[test]
     fn preview_cap_rejects_only_oversize_files() {
         assert!(!exceeds_preview_cap(0));
         assert!(!exceeds_preview_cap(1024));
@@ -657,9 +694,13 @@ mod tests {
     fn molecule_files_are_text() {
         // The 3D molecule viewer needs utf8, not base64 (3Dmol parses the source).
         for ext in [
-            "mol", "mol2", "sdf", "smi", "smiles", "cif", "mcif", "mmcif", "pdb", "pqr", "xyz", "cube",
+            "mol", "mol2", "sdf", "smi", "smiles", "cif", "mcif", "mmcif", "pdb", "pdbqt", "pqr",
+            "xyz", "cube", "gro", "prmtop", "lammpstrj", "cdjson", "vasp", "poscar", "contcar",
         ] {
             assert!(mime_for(ext).1, "{ext} must be a text type");
+        }
+        for ext in ["bcif", "mmtf"] {
+            assert!(!mime_for(ext).1, "{ext} must be read as base64");
         }
     }
 

@@ -13,14 +13,26 @@ describe("moleculeFormatFor", () => {
     expect(moleculeFormatFor("lib.sdf")).toBe("sdf");
     expect(moleculeFormatFor("complex.mol2")).toBe("mol2");
     expect(moleculeFormatFor("1abc.pdb")).toBe("pdb");
+    expect(moleculeFormatFor("dock.pdbqt")).toBe("pdbqt");
     expect(moleculeFormatFor("crystal.cif")).toBe("cif");
     expect(moleculeFormatFor("struct.mmcif")).toBe("cif");
+    expect(moleculeFormatFor("struct.bcif")).toBe("bcif");
+    expect(moleculeFormatFor("model.mmtf")).toBe("mmtf");
+    expect(moleculeFormatFor("topology.prmtop")).toBe("prmtop");
+    expect(moleculeFormatFor("frame.gro")).toBe("gro");
+    expect(moleculeFormatFor("traj.lammpstrj")).toBe("lammpstrj");
+    expect(moleculeFormatFor("chem.cdjson")).toBe("cdjson");
     expect(moleculeFormatFor("cluster.xyz")).toBe("xyz");
+    expect(moleculeFormatFor("cell.vasp")).toBe("vasp");
+    expect(moleculeFormatFor("POSCAR")).toBe("vasp");
+    expect(moleculeFormatFor("run/CONTCAR")).toBe("vasp");
+    expect(moleculeFormatFor("POSCAR_Si")).toBe("vasp");
     expect(moleculeFormatFor("mols.smi")).toBe("sdf");
   });
 
   it("returns null for non-molecule files", () => {
     expect(moleculeFormatFor("report.md")).toBeNull();
+    expect(moleculeFormatFor("chem.json")).toBeNull();
     expect(moleculeFormatFor("noext")).toBeNull();
   });
 });

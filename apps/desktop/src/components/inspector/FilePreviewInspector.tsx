@@ -29,6 +29,7 @@ import { BandView } from "./BandView";
 import { QCodeView } from "./QCodeView";
 import { AnomalyMapView } from "./AnomalyMapView";
 import { PhaseView } from "./PhaseView";
+import { VaspSummaryView } from "./VaspSummaryView";
 import { useScrollMemory } from "@/lib/scrollMemory";
 import { cn } from "@/lib/cn";
 import { PaneTitlebarInset } from "./RightPane";
@@ -51,12 +52,12 @@ export function FilePreviewInspector({
   controls?: React.ReactNode;
 }) {
   const { t } = useTranslation(["inspector", "common"]);
-  const kind = previewKindForName(data.filename);
+  const kind = previewKindForName(data.path || data.filename);
   const needsUrl = kind === "pdf" || kind === "image" || kind === "html" || kind === "video";
   const needsText =
     kind === "table" || kind === "text" || kind === "html" || kind === "markdown" ||
     kind === "molecule" || kind === "genome" || kind === "qcode" || kind === "anomaly" ||
-    kind === "phase";
+    kind === "phase" || kind === "vasp-summary";
   const needsBytes =
     kind === "docx" || kind === "xlsx" || kind === "pptx" || kind === "mesh" ||
     kind === "fits" || kind === "dos" || kind === "bands";
@@ -95,6 +96,7 @@ export function FilePreviewInspector({
           const f = await readArtifact(data.path, data.root);
           if (cancelled) return;
           if (f && f.encoding === "utf8") setText(f.data);
+          else if (f && f.encoding === "base64" && kind === "molecule") setText(f.data);
           // The file was read but isn't text — say so instead of falling
           // through to the "desktop app" note while inside the desktop app.
           else if (f) setError(t("filePreview.binaryNoPreview"));
@@ -123,7 +125,8 @@ export function FilePreviewInspector({
   }, [data.path, data.content, data.root, kind, needsUrl, needsText, needsBytes]);
 
   const canToggle =
-    kind === "html" || kind === "markdown" || kind === "molecule" || kind === "genome";
+    kind === "html" || kind === "markdown" || kind === "molecule" || kind === "genome" ||
+    kind === "vasp-summary";
 
   // Where the user was in this file, restored when they come back to it —
   // history browsing keeps its own offset so the two don't clobber each other.
@@ -239,6 +242,16 @@ function Body({
     if (kind === "xlsx") return <XlsxView bytes={bytes} scrollKey={`office:${path}`} />;
     return <PptxView bytes={bytes} scrollKey={`office:${path}`} />;
   }
+  if (kind === "restricted") {
+    return (
+      <div className="p-4">
+        <div className="rounded-input border border-warn/30 bg-warn/10 p-4 text-sm text-muted">
+          <div className="mb-1 font-medium text-text">{t("filePreview.restrictedTitle", { filename })}</div>
+          <p>{t("filePreview.restrictedBody")}</p>
+        </div>
+      </div>
+    );
+  }
   if (kind === "mesh") {
     return bytes !== null ? (
       <MeshView filename={filename} bytes={bytes} />
@@ -284,6 +297,22 @@ function Body({
   if (kind === "phase") {
     return text !== null ? (
       <PhaseView filename={filename} text={text} />
+    ) : (
+      <Note text={t("filePreview.desktopOnly")} />
+    );
+  }
+  if (kind === "vasp-summary") {
+    if (showCode) {
+      return text !== null ? (
+        <div className="p-3">
+          <CodeViewer code={text} language={language} />
+        </div>
+      ) : (
+        <Note text={t("filePreview.sourceDesktopOnly")} />
+      );
+    }
+    return text !== null ? (
+      <VaspSummaryView filename={filename} text={text} />
     ) : (
       <Note text={t("filePreview.desktopOnly")} />
     );

@@ -69,6 +69,8 @@
     "desktopOnly": "预览功能在桌面应用中可用。",
     "sourceDesktopOnly": "源代码在桌面应用中可用。",
     "binaryNoPreview": "此文件为二进制文件，无法预览——请在外部打开。",
+    "restrictedTitle": "{{filename}} 受限",
+    "restrictedBody": "已识别到授权势函数、凭据或类似敏感文件，因此不会将其加载到预览窗、溯源记录或日志中。",
     "artifactKind": {
       "figure": "图表",
       "script": "脚本",
@@ -169,7 +171,9 @@
     "style": {
       "stick": "棒状",
       "sphere": "球状",
-      "cartoon": "卡通"
+      "cartoon": "卡通",
+      "line": "线状",
+      "cross": "十字"
     },
     "moleculeViewerAria": "{{filename}} 三维分子查看器",
     "notChemicalFile": "不是化学结构文件。",
@@ -177,7 +181,124 @@
     "resetView": "重置视图",
     "atomCount_other": "{{count}} 个原子",
     "renderingStructure": "正在渲染结构…",
-    "badge3D": "三维"
+    "rawTextShown": "下方显示原始结构文本。",
+    "badge2D": "二维",
+    "badge3D": "三维",
+    "controls": {
+      "advanced": "高级控件",
+      "atomInfo": "原子点击信息",
+      "elementLabels": "元素标签",
+      "residueLabels": "残基标签",
+      "measureDistance": "测量距离",
+      "measureAngle": "测量角度",
+      "surface": "分子表面",
+      "unitCell": "晶胞",
+      "stopTrajectory": "停止轨迹",
+      "playTrajectory": "播放轨迹",
+      "trajectoryPlayback": "轨迹播放",
+      "noTrajectoryFrames": "没有轨迹帧",
+      "exportPng": "导出 PNG",
+      "selectionPreset": "选择预设",
+      "selectionElement": "选择元素",
+      "selectionChain": "选择链",
+      "selectionResidue": "选择残基",
+      "selectionAtomIndex": "选择原子索引",
+      "selectionAction": "选择操作",
+      "surfaceType": "表面类型",
+      "surfaceScope": "表面范围",
+      "surfaceColorMode": "表面着色模式",
+      "surfaceColor": "表面颜色",
+      "surfaceOpacity": "表面透明度",
+      "colorMode": "配色模式",
+      "cartoonStyle": "卡通样式",
+      "viewEffect": "视图效果",
+      "orthographic": "正交投影",
+      "cubeIsosurface": "Cube 等值面",
+      "isosurfaceValue": "等值面数值",
+      "isosurfaceColor": "等值面颜色",
+      "isosurfaceOpacity": "等值面透明度",
+      "previousFrame": "上一帧",
+      "trajectoryFrame": "轨迹帧",
+      "nextFrame": "下一帧",
+      "trajectorySpeed": "轨迹速度",
+      "trajectoryLoop": "轨迹循环",
+      "exportApng": "导出 APNG",
+      "vibrationFrames": "生成振动帧",
+      "replicateUnitCell": "扩胞倍数",
+      "replicateHint": "输入 A x B x C 整数，例如 2x2x1",
+      "unitCellAxisLabels": "晶胞轴标签",
+      "resetReplication": "重置扩胞"
+    },
+    "placeholders": {
+      "element": "元素",
+      "chain": "链",
+      "residue": "残基",
+      "atomIndex": "索引"
+    },
+    "selectionPreset": {
+      "all": "全部",
+      "nonH": "不含氢",
+      "hetero": "杂原子",
+      "polymer": "聚合物"
+    },
+    "selectionAction": {
+      "none": "无",
+      "highlight": "高亮",
+      "hide": "隐藏",
+      "focus": "聚焦"
+    },
+    "surfaceScope": {
+      "all": "全部",
+      "selection": "所选",
+      "hetero": "杂原子",
+      "polymer": "聚合物"
+    },
+    "surfaceColorMode": {
+      "solid": "纯色",
+      "element": "元素",
+      "charge": "电荷",
+      "cube": "Cube"
+    },
+    "colorMode": {
+      "jmol": "Jmol",
+      "chain": "链",
+      "spectrum": "光谱",
+      "xGradient": "X 渐变"
+    },
+    "cartoonStyle": {
+      "default": "卡通",
+      "trace": "轨迹",
+      "tube": "管状",
+      "arrow": "箭头"
+    },
+    "viewEffect": {
+      "none": "普通",
+      "outline": "轮廓"
+    },
+    "trajectoryLoop": {
+      "forward": "正向",
+      "backAndForth": "往返"
+    }
+  },
+  "vaspSummary": {
+    "description": "基于有限文本预览生成的 VASP 摘要。",
+    "energyTrace": "能量轨迹",
+    "step": "步数",
+    "kind": "类型",
+    "energyEv": "能量 (eV)",
+    "warnings": "警告",
+    "finalEnergy": "最终能量",
+    "sigmaZero": "Sigma->0",
+    "ionicSteps": "离子步",
+    "electronicSteps": "电子步",
+    "notFound": "未找到",
+    "electronicConvergence": "电子收敛",
+    "reachedAccuracy": "已达到所需精度",
+    "noConvergenceMarker": "预览文本中未找到收敛标记",
+    "energyKind": {
+      "ionic": "离子",
+      "electronic": "电子"
+    }
   },
   "dos": {
     "readError": "无法读取此 DOSCAR 文件 — {{error}}。",
