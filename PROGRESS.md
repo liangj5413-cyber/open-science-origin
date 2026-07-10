@@ -1,5 +1,7 @@
 # Progress
 
+2026-07-10 12:07 · release(linux): built and installed the v0.1.8 amd64 Debian package from the scientific structure preview PR, then verified package integrity, desktop startup, bundled OpenCode/MCP processes, and NVIDIA GLX/EGL rendering without swrast.
+
 2026-07-10 11:58 · feat(structure-preview): ported advanced 3Dmol structure viewing, VASP POSCAR/CONTCAR conversion, simulation asset routing, and VASP summaries onto v0.1.8 with localized controls and passing frontend, Rust, lint, typecheck, and production-build validation.
 
 2026-07-09 13:05 · fix(models): switching the default model now reconnects transparently (masked by `switching`, like setApprovalMode) instead of closing the event stream and stranding the app disconnected until a manual Connect.
