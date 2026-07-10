@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { extOf, extToKind, previewKindForName, type PreviewKind } from "@/lib/artifacts";
+import { simulationAssetBadge } from "@/lib/simulationAssets";
 import { listDir, type DirEntry } from "@/lib/artifactFile";
 import { isTauri, workspaceBase } from "@/lib/tauri";
 import { useRuntimeStore } from "@/lib/runtime";
@@ -145,6 +146,7 @@ export function FilesPage() {
               >
                 {iconFor(entry)}
                 <span className="flex-1 truncate">{entry.name}</span>
+                {!entry.isDir && <AssetBadge path={entry.path} />}
                 {!entry.isDir && <span className="shrink-0 text-[11px] text-muted">{humanSize(entry.size)}</span>}
                 {entry.isDir && <ChevronRight size={14} className="shrink-0 text-muted" />}
               </button>
@@ -163,6 +165,16 @@ export function FilesPage() {
         )}
       </div>
     </div>
+  );
+}
+
+function AssetBadge({ path }: { path: string }) {
+  const label = simulationAssetBadge(path);
+  if (!label) return null;
+  return (
+    <span className="max-w-[5.5rem] shrink-0 truncate rounded bg-surface-2 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted ring-1 ring-border">
+      {label}
+    </span>
   );
 }
 
@@ -310,6 +322,7 @@ export function SessionFilesPane({
             >
               {iconFor(entry)}
               <span className="flex-1 truncate">{entry.name}</span>
+              {!entry.isDir && <AssetBadge path={entry.path} />}
               {!entry.isDir && <span className="shrink-0 text-[11px] text-muted">{humanSize(entry.size)}</span>}
               {entry.isDir && <ChevronRight size={14} className="shrink-0 text-muted" />}
             </button>

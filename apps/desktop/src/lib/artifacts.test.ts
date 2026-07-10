@@ -108,6 +108,11 @@ describe("extractArtifactRefs", () => {
     const md = "Wrote project.docx, project.xlsx and project.pptx.";
     expect(extractArtifactRefs(md)).toEqual(["project.docx", "project.xlsx", "project.pptx"]);
   });
+
+  it("finds VASP fixed-name structure files in prose", () => {
+    const md = "Wrote `relax/POSCAR` and ./runs/CONTCAR.final plus skip NOTPOSCAR.";
+    expect(extractArtifactRefs(md)).toEqual(["relax/POSCAR", "./runs/CONTCAR.final"]);
+  });
 });
 
 describe("previewKind", () => {
@@ -138,7 +143,8 @@ describe("previewKind", () => {
 
   it("renders chemical structure files as molecules", () => {
     for (const ext of [
-      "mol", "mol2", "sdf", "smi", "smiles", "cif", "mcif", "mmcif", "pdb", "pqr", "xyz", "cube",
+      "mol", "mol2", "sdf", "smi", "smiles", "cif", "mcif", "mmcif", "bcif", "mmtf", "pdb", "pdbqt",
+      "pqr", "xyz", "cube", "gro", "prmtop", "lammpstrj", "cdjson", "vasp", "poscar", "contcar",
     ]) {
       expect(previewKind(ext)).toBe("molecule");
     }
@@ -157,12 +163,24 @@ describe("previewKindForName", () => {
     expect(previewKindForName("nacl.dos")).toBe("dos");
     expect(previewKindForName("EIGENVAL")).toBe("bands");
     expect(previewKindForName("run/EIGENVAL")).toBe("bands");
+    expect(previewKindForName("OSZICAR")).toBe("vasp-summary");
+    expect(previewKindForName("OUTCAR")).toBe("vasp-summary");
+    expect(previewKindForName("vasprun.xml")).toBe("vasp-summary");
+    expect(previewKindForName("POTCAR")).toBe("restricted");
+    expect(previewKindForName("secrets/data.txt")).toBe("restricted");
+    expect(previewKindForName("api_key.txt")).toBe("restricted");
+    expect(previewKindForName("POSCAR")).toBe("molecule");
+    expect(previewKindForName("run/CONTCAR")).toBe("molecule");
+    expect(previewKindForName("POSCAR_Si")).toBe("molecule");
+    expect(previewKindForName("CONTCAR.final")).toBe("molecule");
+    expect(previewKindForName("manifest.yaml")).toBe("text");
   });
 
   it("falls back to the extension registry for everything else", () => {
     expect(previewKindForName("sky.fits")).toBe("fits");
     expect(previewKindForName("plot.png")).toBe("image");
     expect(previewKindForName("notes.md")).toBe("markdown");
+    expect(previewKindForName("workflow.vasp_relax.yaml")).toBe("text");
     expect(previewKindForName("main.py")).toBe("text");
   });
 });

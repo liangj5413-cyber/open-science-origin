@@ -26,6 +26,21 @@ const multiQ: QuestionAskedEvent = {
   questions: [{ ...singleQ.questions[0], multiple: true }],
 };
 
+const longQ: QuestionAskedEvent = {
+  ...singleQ,
+  requestId: "que_long",
+  questions: Array.from({ length: 6 }, (_, index) => ({
+    question: `Configuration question ${index + 1}`,
+    header: `Question ${index + 1}`,
+    options: [
+      {
+        label: `Choice ${index + 1}`,
+        description: "A deliberately long option description used to exercise the bounded prompt layout.",
+      },
+    ],
+  })),
+};
+
 const noop = () => {};
 
 describe("InteractionPrompt — question", () => {
@@ -52,6 +67,31 @@ describe("InteractionPrompt — question", () => {
     render(<InteractionPrompt question={singleQ} onAnswer={noop} onReject={onReject} onPermission={noop} />);
     await userEvent.click(screen.getByText("Skip"));
     expect(onReject).toHaveBeenCalledWith("que_1");
+  });
+
+  it("keeps a long question list scrollable while the submit footer stays outside it", async () => {
+    const onAnswer = vi.fn();
+    render(<InteractionPrompt question={longQ} onAnswer={onAnswer} onReject={noop} onPermission={noop} />);
+
+    const scrollRegion = screen.getByRole("region", { name: "The agent needs your input" });
+    const submit = screen.getByRole("button", { name: "Submit" });
+    expect(scrollRegion).toHaveClass("min-h-0", "flex-1", "overflow-y-auto", "overscroll-contain");
+    expect(scrollRegion).toHaveAttribute("tabindex", "0");
+    expect(scrollRegion).not.toContainElement(submit);
+    expect(scrollRegion.parentElement).toContainElement(submit);
+    expect(scrollRegion.parentElement).toHaveStyle({
+      maxHeight: "min(44rem, calc(100dvh - 12rem))",
+    });
+
+    for (let index = 1; index <= longQ.questions.length; index += 1) {
+      await userEvent.click(screen.getByRole("button", { name: new RegExp(`^Choice ${index}`) }));
+    }
+    await userEvent.click(submit);
+
+    expect(onAnswer).toHaveBeenCalledWith(
+      "que_long",
+      longQ.questions.map((_, index) => [`Choice ${index + 1}`]),
+    );
   });
 });
 

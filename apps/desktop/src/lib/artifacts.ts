@@ -10,6 +10,7 @@ import type {
   FilePreviewInspector,
   NotebookFileInspector,
 } from "@ai4s/shared";
+import { classifySimulationAsset, type SimulationAssetInfo } from "./simulationAssets";
 
 const EXT_KIND: Record<string, ArtifactKind> = {
   png: "figure", jpg: "figure", jpeg: "figure", gif: "figure", webp: "figure", svg: "figure",
@@ -19,6 +20,7 @@ const EXT_KIND: Record<string, ArtifactKind> = {
   ipynb: "notebook",
   pdf: "report", tex: "report", md: "report", docx: "report", pptx: "report",
   csv: "table", tsv: "table", parquet: "table", xlsx: "table",
+  yaml: "data", yml: "data",
   mol: "data", sdf: "data", smi: "data", smiles: "data",
   bed: "data", bedgraph: "data", bdg: "data", gff: "data", gff3: "data", gtf: "data", vcf: "data",
   stl: "model", obj: "model", ply: "model", gltf: "model", glb: "model",
@@ -48,11 +50,13 @@ const REF_EXTS = [
   "csv", "tsv", "md", "tex", "json", "py", "ipynb", "r",
   "docx", "xlsx", "pptx",
   "mp4", "webm", "mov", "m4v",
-  "mol", "mol2", "sdf", "smi", "smiles", "cif", "mcif", "mmcif", "pdb", "pqr", "xyz", "cube",
+  "mol", "mol2", "sdf", "smi", "smiles", "cif", "mcif", "mmcif", "bcif", "mmtf", "pdb", "pdbqt",
+  "pqr", "xyz", "cube", "gro", "prmtop", "lammpstrj", "cdjson", "vasp", "poscar", "contcar",
   "bed", "bedgraph", "bdg", "gff", "gff3", "gtf", "vcf",
   "stl", "obj", "ply", "gltf", "glb",
 ];
 const REF_RE = new RegExp(`[\\w./-]+\\.(?:${REF_EXTS.join("|")})\\b`, "gi");
+const VASP_FIXED_REF_RE = /(?:^|[\s`'"(])((?:\.{1,2}\/)?(?:[\w.-]+\/)*(?:POSCAR|CONTCAR)(?:[._-][\w.-]+)?)(?=$|[\s`'").,;:!?])/gi;
 
 /**
  * Extract workspace file paths mentioned in an agent message so a file produced by
@@ -60,10 +64,21 @@ const REF_RE = new RegExp(`[\\w./-]+\\.(?:${REF_EXTS.join("|")})\\b`, "gi");
  * not just prose. Strips surrounding backticks/quotes; dedupes; ignores URLs.
  */
 export function extractArtifactRefs(markdown: string): string[] {
+  const matches: Array<{ index: number; raw: string }> = [];
+  for (const m of markdown.matchAll(REF_RE)) {
+    matches.push({ index: m.index ?? 0, raw: m[0] });
+  }
+  for (const m of markdown.matchAll(VASP_FIXED_REF_RE)) {
+    const raw = m[1];
+    const index = (m.index ?? 0) + m[0].indexOf(raw);
+    matches.push({ index, raw });
+  }
+  matches.sort((a, b) => a.index - b.index);
+
   const out: string[] = [];
   const seen = new Set<string>();
-  for (const m of markdown.matchAll(REF_RE)) {
-    const raw = m[0].replace(/^[`'"(]+|[`'".,)]+$/g, "");
+  for (const match of matches) {
+    const raw = match.raw.replace(/^[`'"(]+|[`'".,)]+$/g, "");
     if (!raw || /^https?:\/\//i.test(raw) || raw.startsWith("//")) continue;
     // Require a path-like token or a known ext; skip bare "a.md" sentence fragments only if no slash.
     if (seen.has(raw)) continue;
@@ -117,7 +132,9 @@ export type PreviewKind =
   | "qcode"
   | "anomaly"
   | "bands"
-  | "phase";
+  | "phase"
+  | "vasp-summary"
+  | "restricted";
 
 /** 3D mesh / CAD formats rendered by the three.js viewer. */
 export const MESH_EXTS = ["stl", "obj", "ply", "gltf", "glb"];
@@ -145,7 +162,13 @@ export function previewKind(ext: string): PreviewKind {
   if (e === "anom") return "anomaly";
   if (e === "eigenval") return "bands";
   if (e === "phase") return "phase";
-  if (["mol", "mol2", "sdf", "smi", "smiles", "cif", "mcif", "mmcif", "pdb", "pqr", "xyz", "cube"].includes(e))
+  if (e === "yaml" || e === "yml") return "text";
+  if (
+    [
+      "mol", "mol2", "sdf", "smi", "smiles", "cif", "mcif", "mmcif", "bcif", "mmtf", "pdb", "pdbqt",
+      "pqr", "xyz", "cube", "gro", "prmtop", "lammpstrj", "cdjson", "vasp", "poscar", "contcar",
+    ].includes(e)
+  )
     return "molecule";
   if (["bed", "bedgraph", "bdg", "gff", "gff3", "gtf", "vcf"].includes(e)) return "genome";
   return "text";
@@ -154,10 +177,21 @@ export function previewKind(ext: string): PreviewKind {
 /** Some scientific tools use fixed, extensionless filenames (VASP DOSCAR, …).
  *  Prefer a name match, else fall back to the extension registry. */
 export function previewKindForName(filename: string): PreviewKind {
-  const base = (filename.split(/[\\/]/).pop() ?? filename).toLowerCase();
-  if (base === "doscar" || base.startsWith("doscar.")) return "dos";
-  if (base === "eigenval" || base.startsWith("eigenval.")) return "bands";
+  const assetKind = previewKindForSimulationAsset(classifySimulationAsset(filename));
+  if (assetKind) return assetKind;
   return previewKind(extOf(filename));
+}
+
+function previewKindForSimulationAsset(info: SimulationAssetInfo): PreviewKind | null {
+  if (info.restricted) return "restricted";
+  if (info.kind === "structure") return "molecule";
+  if (info.kind === "workflow" || info.kind === "run") return "text";
+  if (info.kind === "report") return "markdown";
+  if (info.kind === "source" || info.kind === "vasp-input") return "text";
+  if (info.format === "oszicar" || info.format === "outcar" || info.format === "vasprun") return "vasp-summary";
+  if (info.format === "doscar") return "dos";
+  if (info.format === "eigenval") return "bands";
+  return null;
 }
 
 /** Build a previewable file-inspector from an artifact surfaced in the thread. */

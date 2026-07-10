@@ -70,6 +70,8 @@
     "desktopOnly": "Preview is available in the desktop app.",
     "sourceDesktopOnly": "Source is available in the desktop app.",
     "binaryNoPreview": "This file is binary and has no preview — open it externally.",
+    "restrictedTitle": "{{filename}} is restricted",
+    "restrictedBody": "Licensed potentials, credentials, and similarly sensitive files are detected but not loaded into the preview pane, provenance, or logs.",
     "artifactKind": {
       "figure": "figure",
       "script": "script",
@@ -173,7 +175,9 @@
     "style": {
       "stick": "Stick",
       "sphere": "Sphere",
-      "cartoon": "Cartoon"
+      "cartoon": "Cartoon",
+      "line": "Line",
+      "cross": "Cross"
     },
     "moleculeViewerAria": "{{filename}} 3D molecule viewer",
     "notChemicalFile": "Not a chemical structure file.",
@@ -182,7 +186,124 @@
     "atomCount_one": "{{count}} atom",
     "atomCount_other": "{{count}} atoms",
     "renderingStructure": "Rendering structure…",
-    "badge3D": "3D"
+    "rawTextShown": "Raw structure text is shown below.",
+    "badge2D": "2D",
+    "badge3D": "3D",
+    "controls": {
+      "advanced": "Advanced controls",
+      "atomInfo": "Atom click information",
+      "elementLabels": "Element labels",
+      "residueLabels": "Residue labels",
+      "measureDistance": "Measure distance",
+      "measureAngle": "Measure angle",
+      "surface": "Molecular surface",
+      "unitCell": "Unit cell",
+      "stopTrajectory": "Stop trajectory",
+      "playTrajectory": "Play trajectory",
+      "trajectoryPlayback": "Trajectory playback",
+      "noTrajectoryFrames": "No trajectory frames",
+      "exportPng": "Export PNG",
+      "selectionPreset": "Selection preset",
+      "selectionElement": "Selection element",
+      "selectionChain": "Selection chain",
+      "selectionResidue": "Selection residue",
+      "selectionAtomIndex": "Selection atom index",
+      "selectionAction": "Selection action",
+      "surfaceType": "Surface type",
+      "surfaceScope": "Surface scope",
+      "surfaceColorMode": "Surface color mode",
+      "surfaceColor": "Surface color",
+      "surfaceOpacity": "Surface opacity",
+      "colorMode": "Color mode",
+      "cartoonStyle": "Cartoon style",
+      "viewEffect": "View effect",
+      "orthographic": "Orthographic projection",
+      "cubeIsosurface": "Cube isosurface",
+      "isosurfaceValue": "Isosurface value",
+      "isosurfaceColor": "Isosurface color",
+      "isosurfaceOpacity": "Isosurface opacity",
+      "previousFrame": "Previous frame",
+      "trajectoryFrame": "Trajectory frame",
+      "nextFrame": "Next frame",
+      "trajectorySpeed": "Trajectory speed",
+      "trajectoryLoop": "Trajectory loop",
+      "exportApng": "Export APNG",
+      "vibrationFrames": "Generate vibration frames",
+      "replicateUnitCell": "Replicate unit cell",
+      "replicateHint": "Use A x B x C integers, e.g. 2x2x1",
+      "unitCellAxisLabels": "Unit cell axis labels",
+      "resetReplication": "Reset cell replication"
+    },
+    "placeholders": {
+      "element": "Elem",
+      "chain": "Chain",
+      "residue": "Res",
+      "atomIndex": "Idx"
+    },
+    "selectionPreset": {
+      "all": "All",
+      "nonH": "No H",
+      "hetero": "Hetero",
+      "polymer": "Polymer"
+    },
+    "selectionAction": {
+      "none": "None",
+      "highlight": "Paint",
+      "hide": "Hide",
+      "focus": "Focus"
+    },
+    "surfaceScope": {
+      "all": "All",
+      "selection": "Selection",
+      "hetero": "Hetero",
+      "polymer": "Polymer"
+    },
+    "surfaceColorMode": {
+      "solid": "Solid",
+      "element": "Element",
+      "charge": "Charge",
+      "cube": "Cube"
+    },
+    "colorMode": {
+      "jmol": "Jmol",
+      "chain": "Chain",
+      "spectrum": "Spectrum",
+      "xGradient": "X gradient"
+    },
+    "cartoonStyle": {
+      "default": "Cartoon",
+      "trace": "Trace",
+      "tube": "Tube",
+      "arrow": "Arrow"
+    },
+    "viewEffect": {
+      "none": "Plain",
+      "outline": "Outline"
+    },
+    "trajectoryLoop": {
+      "forward": "Forward",
+      "backAndForth": "Ping-pong"
+    }
+  },
+  "vaspSummary": {
+    "description": "VASP summary from a bounded text preview.",
+    "energyTrace": "Energy trace",
+    "step": "Step",
+    "kind": "Kind",
+    "energyEv": "Energy (eV)",
+    "warnings": "Warnings",
+    "finalEnergy": "Final energy",
+    "sigmaZero": "Sigma->0",
+    "ionicSteps": "Ionic steps",
+    "electronicSteps": "Electronic steps",
+    "notFound": "not found",
+    "electronicConvergence": "Electronic convergence",
+    "reachedAccuracy": "Reached required accuracy",
+    "noConvergenceMarker": "No convergence marker found in previewed text",
+    "energyKind": {
+      "ionic": "Ionic",
+      "electronic": "Electronic"
+    }
   },
   "dos": {
     "readError": "Could not read this DOSCAR — {{error}}.",
