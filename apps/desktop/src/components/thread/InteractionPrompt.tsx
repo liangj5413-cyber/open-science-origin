@@ -89,8 +89,11 @@ function QuestionCard({
   const isQuickPick = items.length === 1 && !items[0].multiple && !items[0].custom;
 
   return (
-    <div className="rounded-card border border-accent/40 bg-surface shadow-card">
-      <header className="border-b border-border px-4 py-2.5">
+    <div
+      className="flex min-h-0 flex-col overflow-hidden rounded-card border border-accent/40 bg-surface shadow-card"
+      style={{ maxHeight: "min(44rem, calc(100dvh - 12rem))" }}
+    >
+      <header className="shrink-0 border-b border-border px-4 py-2.5">
         <div className="flex items-center gap-2">
           <HelpCircle size={15} className="text-accent" />
           <span className="text-sm font-medium text-text">{t("interaction.question.heading")}</span>
@@ -106,7 +109,12 @@ function QuestionCard({
         )}
       </header>
 
-      <div className="space-y-4 px-4 py-3.5">
+      <div
+        role="region"
+        aria-label={t("interaction.question.heading")}
+        tabIndex={0}
+        className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-3.5 outline-none [scrollbar-gutter:stable] focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-accent/40"
+      >
         {items.map((it, qi) => {
           const multiple = !!it.multiple;
           return (
@@ -164,7 +172,7 @@ function QuestionCard({
       </div>
 
       {!isQuickPick && (
-        <footer className="flex justify-end gap-2 border-t border-border px-4 py-2.5">
+        <footer className="flex shrink-0 justify-end gap-2 border-t border-border px-4 py-2.5">
           <button
             className="rounded-input px-3 py-1.5 text-xs text-muted hover:text-text"
             onClick={() => onReject(question.requestId)}
